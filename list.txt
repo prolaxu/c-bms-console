@@ -1,7 +1,0 @@
-id
-name 
-age 
-dob
-phone no 
-email 
-balance 
