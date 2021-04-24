@@ -2,7 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-char clear[5]="clear";
+/*detecting os and giveing clearing screen command  according to os*/
+#if defined(WIN64) || defined(WIN32)
+char clear[]="cls";
+#else
+char clear[]="clear";
+#endif
+
+// defing variables
 FILE *file;
 int lid;
 
@@ -43,16 +50,24 @@ int findlid();
 void cal();
 void adminlogin();
 
+//main Function
 int main(){
-    adminlogin();
+    system(clear); //clears the screen
+    drawhome();
+    read_ac(0,"lac");
+   // adminlogin(); // login 
     return 0;
 }
+
+//For printing data in specific position in the screen with x and y cordinate
 void gotoxy(int x,int y){
     printf("%c[%d;%df",0x1B,y,x);
 }
+
+//draw all Ui of home
 void drawhome(){
     system(clear);
-    drawbox(1,1,89,43,"#","##");
+    drawbox(1,1,90,43,"#","##");
     drawbox(30,5,30,2,"#","");
     gotoxy(33,6);
     printf(" Bank Management System ");
@@ -60,6 +75,7 @@ void drawhome(){
     
 }
 
+//print box shape
 void drawbox(int x,int y,int xlen,int ylen,char xtok[],char ytok[]){
     int i,j;
     int sl= strlen(ytok)-1;
@@ -76,26 +92,27 @@ void drawbox(int x,int y,int xlen,int ylen,char xtok[],char ytok[]){
                     printf("%s",ytok);
                     gotoxy(x+xlen-sl,i);
                     printf("%s",ytok);
-
             }
     }
 }
 
+
+//prints all options and calls actions
 void actions(){
-    // gotoxy(39,6);
-    // printf(" ");
     int ch;
     struct update data;
     float nb;
     int an,dan,ban;
     gotoxy(5,30);
-    printf("Choose the actions: \n##   1.Create New Account \n##   2.Account Enquiry \n##   3.Customer List \n##   4.All Transations \n##   5.Doposit \n##   6.Withdraw \n##   7.Transfer \n##   0.Exit \n## =>");
+    printf("Choose the actions: \n##   1.Create New Account \n##   2.Account Enquiry \n##   3.Customer List \n##   4.All Transations \n##   5.Doposit \n##   6.Withdraw \n##   7.Transfer \n##   8.Delete Account \n##   0.Exit \n## =>");
     scanf("%d",&ch);
     
     if (ch==1){
+        //regenerate screen
         drawhome();
         cacc();
     }else if (ch==2){
+        //Load account info
         int id;
         gotoxy(49,25);
         printf(" ");
@@ -107,12 +124,15 @@ void actions(){
         drawhome();
         read_ac(id,"oac");
     }else if(ch==3){  
+        //Prints all accounts
         drawhome();
         read_ac(0,"lac");
     }else if(ch==4){
+        //prints logs
         drawhome();
         allt(); 
     }else if(ch==5){
+        //Action to Deposite
         drawhome();
         gotoxy(30,15);
         printf("Doposit Account Information:");
@@ -129,6 +149,7 @@ void actions(){
         data.balance=nb;
         up_date(data);
     }else if(ch==6){
+        //Action to Withdraw
         drawhome();
         gotoxy(30,15);
         printf("Withdraw Account Information:");
@@ -144,7 +165,9 @@ void actions(){
         strcpy(data.act,"wb");
         data.balance=nb;
         up_date(data);
+
     }else if(ch==7){
+        //Action to Trasfur
         drawhome();
         gotoxy(30,15);
         printf("Transfer Accounts Information:");
@@ -165,21 +188,43 @@ void actions(){
         strcpy(data.act,"tb");
         data.balance=nb;
         up_date(data);
-    }else if (ch==0){
+
+    }else if (ch==8){
+        //Action to Delete
+        drawhome();
+        gotoxy(30,15);
+        printf(" Delete Account :");
+        gotoxy(34,16);
+        printf("Account Number :");
+        scanf("%d",&an);
+        data.id=an;
+        strcpy(data.act,"dl");
+        up_date(data);
+
+
+    }
+    else if (ch==0){
+        //End Program
         alert("Thanks for Using This Program");
+        gotoxy(1,45);
+        printf("Program Closed \n");
         exit(0);
     }else{
+        //if out of option
         drawhome();
         alert("Invalid Command !");
         actions();
     }
 }
+//print alert massage 
 void alert(char str[]){
     drawbox(25,28,35,2,"#","#");
     gotoxy(30,29);
     printf("%s",str);
     
 }
+
+//stores account info in file
 void store_ac(char name[],char dob[],char phone_no[],char  email[],float balance){
 	file= fopen("db/accounts.db","a+");
 	if (file==NULL)
@@ -187,14 +232,14 @@ void store_ac(char name[],char dob[],char phone_no[],char  email[],float balance
 		alert("Err: DB file not opend.");
 	}else{
         int id=findlid(file)+1;
-		fprintf(file,"\n%d,%s,%s,%s,%s,%f",id,name,dob,phone_no,email,balance);
+		fprintf(file,"\n%d,%s,%s,%s,%s,%f,e:",id,name,dob,phone_no,email,balance);
 		fclose(file);
         gotoxy(40,20);
         printf("| Note You New Account number : %d |",id);
 	}
-    
 }
 
+//Create account Action
 void cacc(){
     int i,j;
     for ( i = 0; i <= 6; i++)
@@ -238,7 +283,7 @@ void cacc(){
 }
 
 
-
+//Read account info
 void read_ac(int id,char act[]){
 
     FILE *fptr;
@@ -293,6 +338,7 @@ void read_ac(int id,char act[]){
     
 }
 
+//get file size
 int fsize(FILE *fp){
     int prev=ftell(fp);
     fseek(fp, 0L, SEEK_END);
@@ -301,6 +347,7 @@ int fsize(FILE *fp){
     return sz;
 }
 
+//prints account info
 void oacc(int id,char name[],char dob[],char phone_no[],char email[] ,char balance[]){
     int i,j;
     for ( i = 0; i <= 6; i++)
@@ -336,6 +383,7 @@ void oacc(int id,char name[],char dob[],char phone_no[],char email[] ,char balan
 
 }
 
+//prints all transation log
 void allt(){
 char * line = NULL;
     size_t len = 0;
@@ -362,7 +410,6 @@ char * line = NULL;
         }
 
         gotoxy(15,13+c);
-        //printf("Transation No :%s => Rs.%s [ From Account Number: %s To Account Number: %s ]",array[0],array[3],array[1],array[2]);
         printf("Transation No :%s => Rs.%s ",array[0],array[3]);
         gotoxy(16,14+c);
         printf("[ From Account Number: %s To Account Number: %s ]",array[1],array[2]);
@@ -379,10 +426,9 @@ char * line = NULL;
     
 }
 
-
+//update account info infile
 void up_date(struct update ud){
-    
-    FILE *fptr;
+ FILE *fptr;
     FILE *toupdate;
     
     if ((fptr = fopen("db/accounts.db", "r")) == NULL) {
@@ -403,6 +449,7 @@ void up_date(struct update ud){
 
     char *array[5];
     int c=0;
+    int dls=0;
 
     struct logt transations;
     
@@ -422,33 +469,89 @@ void up_date(struct update ud){
         if (strcmp(ud.act,"ub")==0)
         {
             if (atoi(array[0])==ud.id){
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f\n",array[0],array[1],array[2],array[3],array[4],atof(array[5])+ud.balance);
+                if(c==0){
+                    snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])+ud.balance);
+                }else{
+                     snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])+ud.balance);
+                }
+            
             }else{
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s\n",array[0],array[1],array[2],array[3],array[4],array[5]);
+                if(c==0){
+                    snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);
+                }else{
+                    snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);
+                }
+            
         }
         }else if(strcmp(ud.act,"wb")==0){
             if (atoi(array[0])==ud.id){
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f\n",array[0],array[1],array[2],array[3],array[4],atof(array[5])-ud.balance);
+                if(c==0){
+                 snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])-ud.balance);    
+                }else{
+                     snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])-ud.balance);
+                }
+            
+           
             }else{
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s\n",array[0],array[1],array[2],array[3],array[4],array[5]);
+                if(c==0){
+                snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);    
+                }else{
+                    snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);
+                }
+            
         }
         }else if(strcmp(ud.act,"tb")==0){
             
             if (atoi(array[0])==ud.bid){
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f\n",array[0],array[1],array[2],array[3],array[4],atof(array[5])+ud.balance);
+                if(c==0){
+                    snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])+ud.balance);
+                }else{
+                    snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])+ud.balance);
+                }
+            
             transations.bid=ud.bid;
             transations.amt=ud.balance;
             transations.status=1;
             }else if (atoi(array[0])==ud.did){
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f\n",array[0],array[1],array[2],array[3],array[4],atof(array[5])-ud.balance);
+                if(c==0){
+                snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])-ud.balance);    
+                }else{
+                    snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%f,e:",array[0],array[1],array[2],array[3],array[4],atof(array[5])-ud.balance);
+                }
+            
             transations.did=ud.did;
             }else{
-            snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s\n",array[0],array[1],array[2],array[3],array[4],array[5]);
+                if(c==0){
+                    snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);
+                }else{
+                    snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);
+                }
+            
             }
 
+        }else if (strcmp(ud.act,"dl")==0)
+        {
+            if (atoi(array[0])!=ud.id){
+                if(c==0){
+                 snprintf( target, sizeof( target ), "%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);    
+                }else{
+                     snprintf( target, sizeof( target ), "\n%s,%s,%s,%s,%s,%s,e:",array[0],array[1],array[2],array[3],array[4],array[5]);
+                }
+           
+            //printf("%s",target);
+            fprintf(toupdate,"%s",target);
+            dls=1;
         }
-        fprintf(toupdate,"%s",target);
+        }
+        
+       if (dls==0)
+       {
+          //printf("%s",target);
+          fprintf(toupdate,"%s",target);
+       }
+       
         line = strtok_r(NULL, "\n",&end_line);
+        c++;
    }
    fclose(toupdate);
 
@@ -463,13 +566,23 @@ void up_date(struct update ud){
         fclose(toupdate);
         transations.status=0;
    }
-   alert("Account Updated.");
+
+   if(strcmp(ud.act,"wb")==0){
+               alert("Ammount Withdrawed.");
+   }else if(strcmp(ud.act,"ub")==0){
+               alert("Ammount Doposited.");
+   }else if(strcmp(ud.act,"tb")==0){
+               alert("Ammount Transfured.");
+   }else if(strcmp(ud.act,"dl")==0){
+               alert("Account Deleted.");
+   }
     actions();
    
 
 }
 
 
+//finds last id in file
 int findlid( FILE *fptr) {
     int sz = fsize(fptr);
     char data[sz];
@@ -505,9 +618,7 @@ int findlid( FILE *fptr) {
     return lid;
 }
 
-void cal(){
-    store_ac("laxu ac","2000-1-1","948674263","laxu@g.m",50000.0);
-}
+//Admin Login action
 void adminlogin(){
     char user[30];
     char pass[30];
@@ -536,7 +647,6 @@ void adminlogin(){
 		fscanf(file,"%s %s\n",dbuser,dbpass);
 		fclose(file);
 	}
-
 
     if (strcmp(dbuser,user)==0 && strcmp(dbpass,pass)==0 )
     {
